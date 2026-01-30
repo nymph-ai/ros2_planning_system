@@ -15,6 +15,27 @@ find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_lifecycle REQUIRED)
 find_package(lifecycle_msgs REQUIRED)
 find_package(rclcpp_cascade_lifecycle REQUIRED)
+
+if(NOT TARGET rclcpp_cascade_lifecycle::rclcpp_cascade_lifecycle)
+  if(TARGET rclcpp_cascade_lifecycle)
+    add_library(rclcpp_cascade_lifecycle::rclcpp_cascade_lifecycle ALIAS rclcpp_cascade_lifecycle)
+  else()
+    add_library(rclcpp_cascade_lifecycle::rclcpp_cascade_lifecycle INTERFACE IMPORTED)
+    set_property(TARGET rclcpp_cascade_lifecycle::rclcpp_cascade_lifecycle
+      PROPERTY INTERFACE_LINK_LIBRARIES rclcpp_cascade_lifecycle)
+  endif()
+endif()
+
+if(DEFINED rclcpp_cascade_lifecycle_INCLUDE_DIRS)
+  include_directories(${rclcpp_cascade_lifecycle_INCLUDE_DIRS})
+elseif(EXISTS "/opt/ros/jazzy/include/rclcpp_cascade_lifecycle/rclcpp_cascade_lifecycle.hpp")
+  include_directories("/opt/ros/jazzy/include")
+endif()
+
+set(PLANSYS2_CASCADE_LIB_DIR "")
+if(EXISTS "/opt/ros/jazzy/lib/librclcpp_cascade_lifecycle.so")
+  set(PLANSYS2_CASCADE_LIB_DIR "/opt/ros/jazzy/lib")
+endif()
 find_package(ament_index_cpp REQUIRED)
 find_package(plansys2_core REQUIRED)
 find_package(plansys2_pddl_parser REQUIRED)
@@ -50,6 +71,9 @@ target_include_directories(${PROJECT_NAME} PUBLIC
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>"
   "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/include>"
   "$<INSTALL_INTERFACE:include/${PROJECT_NAME}>")
+if(PLANSYS2_CASCADE_LIB_DIR)
+  target_link_directories(${PROJECT_NAME} PUBLIC "${PLANSYS2_CASCADE_LIB_DIR}")
+endif()
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
   behaviortree_cpp::behaviortree_cpp
@@ -63,7 +87,7 @@ target_link_libraries(${PROJECT_NAME}
   pluginlib::pluginlib
   rclcpp::rclcpp
   rclcpp_action::rclcpp_action
-  rclcpp_cascade_lifecycle::rclcpp_cascade_lifecycle
+  rclcpp_cascade_lifecycle
   rclcpp_lifecycle::rclcpp_lifecycle
   ${std_msgs_TARGETS}
   ${std_srvs_TARGETS}
